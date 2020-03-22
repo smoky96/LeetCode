@@ -47,61 +47,70 @@
 #include <vector>
 using namespace std;
 
+class UnionFind {
+  vector<int> parent;
+
+ public:
+  UnionFind(int sz) {
+    parent.resize(sz);
+    for (int i = 0; i < sz; ++i) {
+      parent[i] = i;
+    }
+  }
+
+  void Union(int x, int y) {
+    int px = find(x);
+    int py = find(y);
+    if (px != py) {
+      parent[py] = px;
+    }
+  }
+
+  int find(int x) {
+    while (parent[x] != x) {
+      parent[x] = parent[parent[x]];  // 路径压缩
+      x = parent[x];
+    }
+    return x;
+  }
+
+  bool isConnect(int x, int y) { return find(x) == find(y); }
+};
+
 class Solution {
-public:
-  void solve(vector<vector<char>> &board) {
+ public:
+  int n_row;
+  int n_col;
+  void solve(vector<vector<char>>& board) {
     if (board.size() == 0) {
       return;
     }
-
-    vector<vector<bool>> visited(board.size(),
-                                 vector<bool>(board[0].size(), false));
-    vector<pair<int, int>> ready_to_change;
-    bool toch_edge = false;
-    for (int i = 1; i < board.size() - 1; ++i) {
-      for (int j = 1; j < board[0].size() - 1; ++j) {
-        if (board[i][j] == 'X' || visited[i][j]) {
-          continue;
-        }
-        aux(board, visited, ready_to_change, i, j, toch_edge);
-        if (!toch_edge) {
-          for (auto p : ready_to_change) {
-            board[p.first][p.second] = 'X';
+    n_row = board.size();
+    n_col = board[0].size();
+    int dummy = n_row * n_col;
+    UnionFind uf(n_row * n_col + 1);
+    for (int i = 0; i < n_row; ++i) {
+      for (int j = 0; j < n_col; ++j) {
+        if (board[i][j] == 'O') {
+          if (i == 0 || i == n_row - 1 || j == 0 || j == n_col - 1) {
+            uf.Union(node(i, j), dummy);
+          } else {
+            if (board[i - 1][j] == 'O') uf.Union(node(i, j), node(i - 1, j));
+            if (board[i + 1][j] == 'O') uf.Union(node(i, j), node(i + 1, j));
+            if (board[i][j - 1] == 'O') uf.Union(node(i, j), node(i, j - 1));
+            if (board[i][j + 1] == 'O') uf.Union(node(i, j), node(i, j + 1));
           }
         }
-        ready_to_change.clear();
-        toch_edge = false;
+      }
+    }
+
+    for (int i = 0; i < n_row; ++i) {
+      for (int j = 0; j < n_col; ++j) {
+        if (!uf.isConnect(node(i, j), dummy)) board[i][j] = 'X';
       }
     }
   }
 
-  void aux(const vector<vector<char>> &board, vector<vector<bool>> &visited,
-           vector<pair<int, int>> &ready_to_change, int i, int j,
-           bool &touch_edge) {
-    if (visited[i][j]) {
-      return;
-    }
-
-    visited[i][j] = true;
-
-    if (board[i][j] == 'X') {
-      return;
-    } else {
-      if (i == 0 || i == board.size() - 1 || j == 0 ||
-          j == board[0].size() - 1) {
-        touch_edge = true;
-      }
-      if (!touch_edge)
-        ready_to_change.push_back(make_pair(i, j));
-    }
-    if (i + 1 < board.size())
-      aux(board, visited, ready_to_change, i + 1, j, touch_edge);
-    if (i - 1 >= 0)
-      aux(board, visited, ready_to_change, i - 1, j, touch_edge);
-    if (j - 1 >= 0)
-      aux(board, visited, ready_to_change, i, j - 1, touch_edge);
-    if (j + 1 < board[0].size())
-      aux(board, visited, ready_to_change, i, j + 1, touch_edge);
-  }
+  int node(int i, int j) { return i * n_col + j; }
 };
 // @lc code=end
