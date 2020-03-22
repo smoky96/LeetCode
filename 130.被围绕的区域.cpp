@@ -58,7 +58,7 @@ class UnionFind {
     }
   }
 
-  void Union(int x, int y) {
+  void Union(const int& x, const int& y) {
     int px = find(x);
     int py = find(y);
     if (px != py) {
@@ -66,15 +66,16 @@ class UnionFind {
     }
   }
 
-  int find(int x) {
-    while (parent[x] != x) {
-      parent[x] = parent[parent[x]];  // 路径压缩
-      x = parent[x];
+  int find(const int& x) {
+    int i = x;
+    while (parent[i] != i) {
+      parent[i] = parent[parent[i]];  // 路径压缩
+      i = parent[i];
     }
-    return x;
+    return i;
   }
 
-  bool isConnect(int x, int y) { return find(x) == find(y); }
+  bool isConnect(const int& x, const int& y) { return find(x) == find(y); }
 };
 
 class Solution {
